@@ -1,33 +1,28 @@
-# speech_to_text_with_input.py
+import torch
+import torchaudio
+from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+import soundfile as sf
 
-import speech_recognition as sr
+processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 
 def transcribe_audio(file_path):
-    recognizer = sr.Recognizer()
+    audio_input, sample_rate = sf.read(file_path)
 
-    try:
-        with sr.AudioFile(file_path) as source:
-            print("Listening to the file...")
-            audio_data = recognizer.record(source)
+    if sample_rate != 16000:
+        raise ValueError("Please provide audio sampled at 16kHz")
 
-        # ✅ Online API (Google)
-        text = recognizer.recognize_google(audio_data)
+    inputs = processor(audio_input, sampling_rate=16000, return_tensors="pt", padding=True)
+    with torch.no_grad():
+        logits = model(**inputs).logits
 
-        # ✅ Uncomment this to use offline method (if installed)
-        # text = recognizer.recognize_sphinx(audio_data)
+    predicted_ids = torch.argmax(logits, dim=-1)
+    transcription = processor.batch_decode(predicted_ids)[0]
 
-        return text
+    return transcription
 
-    except FileNotFoundError:
-        return "Error: File not found."
-    except sr.UnknownValueError:
-        return "Could not understand audio."
-    except sr.RequestError as e:
-        return f"API error: {e}"
-
-if __name__ == "__main__":
-    # ✅ Ask user for input file path
-    file_path = input("Enter path to your audio file: ").strip()
-
-    transcription = transcribe_audio(file_path)
-    print("\nTranscription:", transcription)
+if name == "main":
+    print("Enter path to your audio file:")
+    print("Listening to the file...")
+    text = transcribe_audio("example.wav")
+    print("Transcription:", text)
