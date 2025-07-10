@@ -1,10 +1,10 @@
 import torch
 import torchaudio
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+from transformers import Wav2VecForCTC, Wav2VecProcessor
 import soundfile as sf
 
-processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
-model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+processor = Wav2VecProcessor.from_pretrained("facebook/wav2vec2-base-960h")
+model = Wav2VecForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 
 def transcribe_audio(file_path):
     audio_input, sample_rate = sf.read(file_path)
